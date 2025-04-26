@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 import uuid
 from .models import LinkInfo
 from django.http import HttpResponse
@@ -15,7 +15,7 @@ def add(request):
         new_link.save()
 
         return HttpResponse(link_id)
-    
+
 def shorten(request, pk):
-    link_id = LinkInfo.objects.get(link_id = pk)
-    return redirect(link_id)
+    link_info = get_object_or_404(LinkInfo, link_id=pk)
+    return redirect(link_info.link)
