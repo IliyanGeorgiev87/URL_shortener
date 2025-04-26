@@ -15,10 +15,13 @@
         </div>
         <div class="card-body">
             <h5 class="card-title">Paste your URL below:</h5>
+            
             <form method="POST" action="{% url 'create' %}">
+                {% csrf_token %}
                 <input type="text" class="input-group-text mb-3" id="url" name="link">
                 <button type="submit" class="btn btn-primary mb-3">Shorten <i class="bi bi-code"></i></button>
             </form>
+            
             <div>
             </div>
         </div>
