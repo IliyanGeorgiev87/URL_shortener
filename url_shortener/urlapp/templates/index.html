@@ -8,63 +8,87 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
-<body>
+<body style="background-color: #edf4ff;">
 
-    <div class="card">
-        <div class="card-header">
-            URL shortener
-        </div>
-        <div class="card-body">
-            <h5 class="card-title">Paste your URL below:</h5>
-            
-            <form method="POST" action="{% url 'create' %}" id = "form">
-                {% csrf_token %}
-                <input type="text" class="input-group-text mb-3" id="url" name="link">
-                <button type="submit" class="btn btn-primary mb-3" id="submit_button">Shorten <i class="bi bi-code"></i></button>
-            </form>
-            
-            <div id="shortened_link"></div>
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="card">
+            <div class="card-header d-flex gap-1 justify-content-center">
+                URL shortener <i class="bi bi-link-45deg"></i>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Paste your URL below:</h5>
+    
+                <form method="POST" action="{% url 'create' %}" id = "form">
+                    {% csrf_token %}
+                    <input type="text" class="input-group-text mb-3" id="url" name="link" required>
+                    <button type="submit" class="btn btn-primary mb-3" id="submit_button">Shorten <i class="bi bi-link"></i></button>
+                </form>
+    
+                <div id="shortened_link"></div>
+    
+                <button class="btn btn-success mt-3 d-none" id="copy_btn">Copy link <i class="bi bi-copy ms-1"></i></button>
+            </div>
         </div>
     </div>
-
+    
     <script>
         let form = document.getElementById("form");
-let shortened_link = document.getElementById('shortened_link');
-form.addEventListener('submit', shortenURL);
-
-function shortenURL(e) {
-    e.preventDefault();
-    const csrfToken = getCookie('csrftoken');
-    $.ajax({
-        type: 'POST',
-        url: form.action,
-        data: $(form).serialize() + "&csrfmiddlewaretoken=" + csrfToken,
-        dataType: "text", // Expecting plain text
-        success: function(data) {
-            console.log("Shortened link ID received:", data);
-            shortened_link.innerText = "Your shortened URL is: http://127.0.0.1:8000/" + data;
-        },
-        error: function(xhr, status, error) {
-            console.error("AJAX Error:", status, error, xhr);
+        let shortened_link_div = document.getElementById('shortened_link');
+        let copy_button = document.getElementById('copy_btn');
+        form.addEventListener('submit', shortenURL);
+        copy_button.addEventListener('click', copyShortenedLink);
+    
+        function shortenURL(e) {
+            e.preventDefault();
+            const csrfToken = getCookie('csrftoken');
+            $.ajax({
+                type: 'POST',
+                url: form.action,
+                data: $(form).serialize() + "&csrfmiddlewaretoken=" + csrfToken,
+                dataType: "text",
+                success: function(data) {
+                    console.log("Shortened link ID received:", data);
+                    const shortenedURL = "http://127.0.0.1:8000/" + data;
+                    shortened_link_div.innerText = "Your shortened URL is: " + shortenedURL;
+                    copy_button.classList.remove('d-none');
+                    copy_button.dataset.shortenedUrl = shortenedURL;
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error:", status, error, xhr);
+                    shortened_link_div.innerText = "Error shortening URL.";
+                    copy_button.classList.add('d-none');
+                }
+            });
         }
-    });
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            let cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+    
+        function copyShortenedLink() {
+            const shortenedURL = copy_button.dataset.shortenedUrl;
+            if (shortenedURL) {
+                navigator.clipboard.writeText(shortenedURL).then(function() {
+                    alert("Link copied to clipboard!");
+                }, function(err) {
+                    console.error('Could not copy text: ', err);
+                    alert("Failed to copy link.");
+                });
+            } else {
+                alert("No link to copy yet. Please shorten a URL first.");
             }
         }
-    }
-    return cookieValue;
-}
+    
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    let cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
     </script>
 
 </body>
